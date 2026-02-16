@@ -1,1 +1,1 @@
-github-readme-terminal>=0.7.0
+github-readme-terminal==0.0.3
