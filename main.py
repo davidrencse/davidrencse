@@ -64,7 +64,6 @@ def _get_commits_last_year(username):
 def _format_summary(username):
     commits = _get_commits_last_year(username)
     return (
-        f"\x1b[30;46m {username}@github \x1b[0m\n"
         f"- Commits (last year): {commits}\n"
         f"- Top languages: {TOP_LANGUAGES}\n"
     )
@@ -72,28 +71,26 @@ def _format_summary(username):
 
 def build_terminal_gif():
     t = gifos.Terminal(860, 520, 10, 10)
+    shell_prompt = "davidrencse@terminal:~$ "
 
     t.gen_text("Booting profile terminal...", 1, count=10)
     t.gen_text("Initializing session for visitor", 2, count=10)
     t.gen_text("", 3, count=8)
 
     t.toggle_show_cursor(True)
-    t.gen_prompt(4)
-    t.gen_typing_text("whoami", 4, contin=True)
+    t.gen_typing_text(f"{shell_prompt}whoami", 4)
     t.toggle_show_cursor(False)
     t.gen_text(USERNAME, 5, count=6)
 
     t.toggle_show_cursor(True)
-    t.gen_prompt(6)
-    t.gen_typing_text("github --summary", 6, contin=True)
+    t.gen_typing_text(f"{shell_prompt}github --summary", 6)
     t.toggle_show_cursor(False)
 
     summary = _format_summary(USERNAME)
     t.gen_text(summary, 7, 2, count=2, contin=True)
 
-    t.gen_prompt(t.curr_row + 1)
     t.toggle_show_cursor(True)
-    t.gen_typing_text("echo 'thanks for visiting'", t.curr_row, contin=True)
+    t.gen_typing_text(f"{shell_prompt}echo 'thanks for visiting'", t.curr_row + 1)
     t.toggle_show_cursor(False)
     t.gen_text("thanks for visiting", t.curr_row + 1, count=6)
 
