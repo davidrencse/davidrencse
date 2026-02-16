@@ -82,10 +82,6 @@ def build_readme():
         f"<p align=\"center\">\n"
         f"  <img src=\"./{OUTPUT_GIF}\" alt=\"Terminal animation\"/>\n"
         f"</p>\n\n"
-        f"<p align=\"center\">\n"
-        f"  Auto-generated with "
-        f"<a href=\"https://github.com/x0rzavi/github-readme-terminal\">github-readme-terminal</a>.\n"
-        f"</p>\n\n"
         f"<p align=\"center\">Last updated: {generated_at}</p>\n"
     )
 
