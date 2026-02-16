@@ -1,10 +1,14 @@
 from datetime import datetime, timezone
+import json
+import os
+from urllib import request
 
 import gifos
 
 USERNAME = "davidrencse"
 OUTPUT_GIF = "output.gif"
 README_PATH = "README.md"
+TOP_LANGUAGES = "Python, C++, C, JavaScript, AWS, HTML, CSS, SQL"
 
 
 def _safe_stats(username):
@@ -14,24 +18,55 @@ def _safe_stats(username):
         return None
 
 
-def _format_stats(stats):
-    if stats is None:
-        return ("N/A", "N/A", "N/A", "N/A", "N/A")
+def _get_commits_last_year(username):
+    stats = _safe_stats(username)
+    if stats is not None:
+        commits = getattr(stats, "total_commits_last_year", None)
+        if commits is not None:
+            return str(commits)
 
-    top_langs = "N/A"
-    if getattr(stats, "languages_sorted", None):
-        top_langs = ", ".join(lang[0] for lang in stats.languages_sorted[:5])
+    token = os.getenv("GITHUB_TOKEN")
+    if not token:
+        return "N/A"
 
-    rank = "N/A"
-    if getattr(stats, "user_rank", None):
-        rank = getattr(stats.user_rank, "level", "N/A")
+    query = """
+    query($login: String!) {
+      user(login: $login) {
+        contributionsCollection {
+          totalCommitContributions
+        }
+      }
+    }
+    """
+    body = json.dumps(
+        {"query": query, "variables": {"login": username}}
+    ).encode("utf-8")
+    req = request.Request(
+        "https://api.github.com/graphql",
+        data=body,
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    try:
+        with request.urlopen(req, timeout=20) as resp:
+            payload = json.loads(resp.read().decode("utf-8"))
+        commits = payload["data"]["user"]["contributionsCollection"][
+            "totalCommitContributions"
+        ]
+        return str(commits)
+    except Exception:
+        return "N/A"
 
+
+def _format_summary(username):
+    commits = _get_commits_last_year(username)
     return (
-        str(getattr(stats, "total_stargazers", "N/A")),
-        str(getattr(stats, "total_commits_last_year", "N/A")),
-        str(getattr(stats, "total_pull_requests_made", "N/A")),
-        str(rank),
-        top_langs,
+        f"\x1b[30;46m {username}@github \x1b[0m\n"
+        f"- Commits (last year): {commits}\n"
+        f"- Top languages: {TOP_LANGUAGES}\n"
     )
 
 
@@ -53,17 +88,7 @@ def build_terminal_gif():
     t.gen_typing_text("github --summary", 6, contin=True)
     t.toggle_show_cursor(False)
 
-    stats = _safe_stats(USERNAME)
-    stars, commits, prs, rank, languages = _format_stats(stats)
-
-    summary = (
-        f"\x1b[30;46m {USERNAME}@github \x1b[0m\n"
-        f"- Stars: {stars}\n"
-        f"- Commits (last year): {commits}\n"
-        f"- Pull requests: {prs}\n"
-        f"- Rank: {rank}\n"
-        f"- Top languages: {languages}\n"
-    )
+    summary = _format_summary(USERNAME)
     t.gen_text(summary, 7, 2, count=2, contin=True)
 
     t.gen_prompt(t.curr_row + 1)
