@@ -65,7 +65,7 @@ def _format_summary(username):
     commits = _get_commits_last_year(username)
     return (
         f"- Commits (last year): {commits}\n"
-        f"- Top languages: {TOP_LANGUAGES}\n"
+        f"- Top Skills: {TOP_LANGUAGES}\n"
     )
 
 
